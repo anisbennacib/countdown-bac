@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bac 2026 - Compte à rebours</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6c757d;
+            --accent-pratique: #0d9488;
+            --accent-pratique-hover: #0f766e;
+            --accent-principal: #6366f1;
+            --accent-principal-hover: #4f46e5;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --border: #e9ecef;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #1a1a1a;
+            --bg-card: #1f1f1f;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --accent-pratique: #14b8a6;
+            --accent-pratique-hover: #2dd4bf;
+            --accent-principal: #818cf8;
+            --accent-principal-hover: #a5b4fc;
+            --shadow: rgba(0, 0, 0, 0.5);
+            --border: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 20px 5px 20px;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px var(--shadow);
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px var(--shadow);
+        }
+
+        .theme-toggle svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            margin: 15px 0 20px 0;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-principal), var(--accent-pratique));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .main-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .exams-container {
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .exam-slide {
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+
+        .exam-slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .exam-card {
+            background: var(--bg-card);
+            border-radius: 30px;
+            padding: 25px 30px;
+            box-shadow: 0 20px 60px var(--shadow);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .exam-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--card-accent), var(--card-accent-alt));
+            opacity: 0.8;
+        }
+
+        .exam-card.pratique {
+            --card-accent: var(--accent-pratique);
+            --card-accent-alt: #14b8a6;
+        }
+
+        .exam-card.principal {
+            --card-accent: var(--accent-principal);
+            --card-accent-alt: #ec4899;
+        }
+
+        .exam-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .exam-icon {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .exam-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--card-accent);
+            margin-bottom: 5px;
+        }
+
+        .exam-date {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            font-weight: 500;
+        }
+
+        .countdown {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .time-card {
+            background: var(--bg-secondary);
+            padding: 15px 10px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .time-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--card-accent);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .time-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px var(--shadow);
+        }
+
+        .time-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .time-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--card-accent);
+            display: block;
+            margin-bottom: 4px;
+            line-height: 1;
+        }
+
+        .time-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .info-section {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .weeks-display {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .weeks-display span {
+            color: var(--card-accent);
+            font-weight: 700;
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            padding: 0 10px;
+        }
+
+        .message.success {
+            color: var(--card-accent);
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .nav-btn {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            color: var(--text-primary);
+            padding: 12px 30px;
+            border-radius: 15px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--shadow);
+            border-color: var(--accent-principal);
+        }
+
+        .nav-btn:active {
+            transform: translateY(0);
+        }
+
+        .nav-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        .exam-indicator {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .indicator-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .indicator-dot.active {
+            width: 35px;
+            border-radius: 6px;
+        }
+
+        .indicator-dot.principal.active {
+            background: var(--accent-principal);
+        }
+
+        .indicator-dot.pratique.active {
+            background: var(--accent-pratique);
+        }
+
+        .progress-bar-container {
+            margin-top: 15px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--card-accent), var(--card-accent-alt));
+            border-radius: 10px;
+            transition: width 1s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        footer {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        footer strong {
+            background: linear-gradient(135deg, var(--accent-principal), var(--accent-pratique));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .main-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .exam-card {
+                padding: 40px 25px;
+            }
+
+            .exam-title {
+                font-size: 1.8rem;
+            }
+
+            .exam-icon {
+                font-size: 2.5rem;
+            }
+
+            .time-value {
+                font-size: 2rem;
+            }
+
+            .theme-toggle {
+                width: 50px;
+                height: 50px;
+                top: 20px;
+                right: 20px;
+            }
+
+            .theme-toggle svg {
+                width: 24px;
+                height: 24px;
+            }
+
+            .countdown {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .nav-btn {
+                padding: 12px 25px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .exam-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <svg id="sunIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z"/>
+        </svg>
+        <svg id="moonIcon" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M10 7C10 10.866 13.134 14 17 14C18.9584 14 20.729 13.1957 21.9995 11.8995C22 11.933 22 11.9665 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C12.0335 2 12.067 2 12.1005 2.00049C10.8043 3.27098 10 5.04157 10 7Z"/>
+        </svg>
+    </button>
+
+    <div class="header">
+        <h1 class="main-title">Bac 2026</h1>
+        <p class="main-subtitle">📚 Compte à rebours vers l'excellence</p>
+    </div>
+
+    <div class="exams-container">
+        <!-- Bac Principal -->
+        <div class="exam-slide active" id="slide-principal">
+            <div class="exam-card principal">
+                <div class="exam-header">
+                    <span class="exam-icon">📝</span>
+                    <h2 class="exam-title">Bac Principal</h2>
+                    <p class="exam-date">3 Juin 2026 • 8h00</p>
+                </div>
+
+                <div class="countdown" id="countdown-principal">
+                    <div class="time-card">
+                        <span class="time-value" id="days-principal">0</span>
+                        <span class="time-label">Jours</span>
+                    </div>
+                    <div class="time-card">
+                        <span class="time-value" id="hours-principal">0</span>
+                        <span class="time-label">Heures</span>
+                    </div>
+                    <div class="time-card">
+                        <span class="time-value" id="minutes-principal">0</span>
+                        <span class="time-label">Minutes</span>
+                    </div>
+                    <div class="time-card">
+                        <span class="time-value" id="seconds-principal">0</span>
+                        <span class="time-label">Secondes</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="weeks-display" id="weeks-principal"></div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-label">Progression</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-principal" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="message" id="message-principal">Restez concentrés ! 💪</div>
+            </div>
+        </div>
+
+        <!-- Bac Pratique -->
+        <div class="exam-slide" id="slide-pratique">
+            <div class="exam-card pratique">
+                <div class="exam-header">
+                    <span class="exam-icon">💻</span>
+                    <h2 class="exam-title">Bac Pratique</h2>
+                    <p class="exam-date">18 Mai 2026 • 8h00</p>
+                </div>
+
+                <div class="countdown" id="countdown-pratique">
+                    <div class="time-card">
+                        <span class="time-value" id="days-pratique">0</span>
+                        <span class="time-label">Jours</span>
+                    </div>
+                    <div class="time-card">
+                        <span class="time-value" id="hours-pratique">0</span>
+                        <span class="time-label">Heures</span>
+                    </div>
+                    <div class="time-card">
+                        <span class="time-value" id="minutes-pratique">0</span>
+                        <span class="time-label">Minutes</span>
+                    </div>
+                    <div class="time-card">
+                        <span class="time-value" id="seconds-pratique">0</span>
+                        <span class="time-label">Secondes</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="weeks-display" id="weeks-pratique"></div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="progress-label">Progression</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-pratique" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="message" id="message-pratique">Pratiquez régulièrement ! 🎯</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prevBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M10.8284 12.0007L15.7782 16.9504L14.364 18.3646L8 12.0007L14.364 5.63672L15.7782 7.05093L10.8284 12.0007Z"/>
+            </svg>
+            Précédent
+        </button>
+        
+        <div class="exam-indicator">
+            <div class="indicator-dot principal active" data-slide="0"></div>
+            <div class="indicator-dot pratique" data-slide="1"></div>
+        </div>
+        
+        <button class="nav-btn" id="nextBtn">
+            Suivant
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M13.1717 12.0007L8.22192 7.05093L9.63614 5.63672L16.0001 12.0007L9.63614 18.3646L8.22192 16.9504L13.1717 12.0007Z"/>
+            </svg>
+        </button>
+    </div>
+
+    <footer>
+        © 2026 <strong>ABN Academy</strong> | Anis Ben Nacib
+    </footer>
+
+    <script>
+        const targetDatePratique = new Date("2026-05-18T08:00:00").getTime();
+        const targetDatePrincipal = new Date("2026-06-03T08:00:00").getTime();
+        const startDate = new Date("2025-09-01T00:00:00").getTime(); // Début année scolaire approximatif
+        
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const html = document.documentElement;
+
+        // Charger le thème sauvegardé
+        const savedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
+        }
+
+        function updateCountdown(targetDate, prefix) {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            if (distance <= 0) {
+                document.getElementById(`countdown-${prefix}`).style.display = "none";
+                document.getElementById(`weeks-${prefix}`).style.display = "none";
+                document.querySelector(`.progress-bar-container`).style.display = "none";
+                document.getElementById(`message-${prefix}`).textContent = "🎉 Le jour est arrivé ! Bonne chance ! 🎉";
+                document.getElementById(`message-${prefix}`).classList.add("success");
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            const weeks = Math.floor(days / 7);
+
+            document.getElementById(`days-${prefix}`).textContent = days;
+            document.getElementById(`hours-${prefix}`).textContent = String(hours).padStart(2, '0');
+            document.getElementById(`minutes-${prefix}`).textContent = String(minutes).padStart(2, '0');
+            document.getElementById(`seconds-${prefix}`).textContent = String(seconds).padStart(2, '0');
+            
+            const weeksText = weeks === 1 ? 'semaine restante' : 'semaines restantes';
+            document.getElementById(`weeks-${prefix}`).innerHTML = `⏳ <span>${weeks}</span> ${weeksText}`;
+
+            // Calculer et mettre à jour la barre de progression
+            const totalDuration = targetDate - startDate;
+            const elapsed = now - startDate;
+            const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+            document.getElementById(`progress-${prefix}`).style.width = `${progress.toFixed(1)}%`;
+        }
+
+        function updateAllCountdowns() {
+            updateCountdown(targetDatePratique, 'pratique');
+            updateCountdown(targetDatePrincipal, 'principal');
+        }
+
+        const interval = setInterval(updateAllCountdowns, 1000);
+        updateAllCountdowns();
+
+        // Navigation functionality
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.exam-slide');
+        const indicators = document.querySelectorAll('.indicator-dot');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                indicators[i].classList.remove('active');
+            });
+            
+            currentSlide = index;
+            slides[currentSlide].classList.add('active');
+            indicators[currentSlide].classList.add('active');
+
+            // Update button states
+            prevBtn.style.opacity = currentSlide === 0 ? '0.5' : '1';
+            prevBtn.style.cursor = currentSlide === 0 ? 'not-allowed' : 'pointer';
+            nextBtn.style.opacity = currentSlide === slides.length - 1 ? '0.5' : '1';
+            nextBtn.style.cursor = currentSlide === slides.length - 1 ? 'not-allowed' : 'pointer';
+        }
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                showSlide(currentSlide + 1);
+            }
+        });
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        });
+
+        indicators.forEach((indicator, index) => {
+            indicator.addEventListener('click', () => {
+                showSlide(index);
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' && currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            } else if (e.key === 'ArrowRight' && currentSlide < slides.length - 1) {
+                showSlide(currentSlide + 1);
+            }
+        });
+
+        // Touch swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.querySelector('.exams-container').addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.querySelector('.exams-container').addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50 && currentSlide < slides.length - 1) {
+                showSlide(currentSlide + 1);
+            }
+            if (touchEndX > touchStartX + 50 && currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        // Initialize button states
+        showSlide(0);
+    </script>
+</body>
+
+</html>
